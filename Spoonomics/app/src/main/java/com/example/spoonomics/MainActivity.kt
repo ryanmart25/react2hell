@@ -9,11 +9,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.example.spoonomics.ui.theme.SpoonomicsTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,6 +28,40 @@ class MainActivity : ComponentActivity() {
             SpoonomicsTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     CuteCanvasWebScreen(modifier = Modifier.padding(innerPadding))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppRoot(){
+    val NavController = rememberNavController()
+    SpoonomicsTheme{
+        Surface(
+            modifier = Modifier
+        ){
+            NavHost(
+                navController = NavController,
+                startDestination = UserDestination.Home.route
+            ){
+                composable(UserDestination.Home.route){
+                    val HomeViewModel: HomeViewModel = viewModel()
+                    UserHomeRoute(
+                        viewModel= HomeViewModel,
+                        onNavigateToTaskCreation = {
+                            NavController.navigate(UserDestination.TaskCreation.route)
+                        }
+                    )
+                }
+                composable(USerDestination.TaskCreation.route){
+                    val TaskCreationViewModel: TaskCreationViewModel = viewModel()
+                    TaskCreationRoute(
+                        viewModel= TaskCreationViewModel,
+                        onNavigateToUserHome = {
+                            NavController.navigate(UserDestination.Home.route)
+                        }
+                    )
                 }
             }
         }
