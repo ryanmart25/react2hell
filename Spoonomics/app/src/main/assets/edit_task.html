@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Task - Editorial Soft-Modernism</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#555c8c',
+                        'primary-dim': '#49507f',
+                        'tertiary': '#71557c',
+                        'surface': '#fbf8fe',
+                        'container-low': '#f5f2fb',
+                        'container-lowest': '#ffffff',
+                        'container-high': '#e9e7f1',
+                        'on-surface': '#31323b',
+                        'outline-variant': '#b2b1bc'
+                    },
+                    fontFamily: {
+                        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+                        'body': ['"Inter"', 'sans-serif']
+                    },
+                    boxShadow: {
+                        // 6% opacity, high blur ambient shadow as requested
+                        'ambient': '0 8px 24px rgba(49, 50, 59, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #fbf8fe; }
+        /* Hide scrollbar for a cleaner look */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="text-on-surface font-body antialiased pb-32">
+
+<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl pt-12 pb-6 px-6">
+    <div class="flex items-center justify-between">
+        <button onclick="goBack()" class="text-primary font-display font-semibold tracking-wide text-sm flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            BACK
+        </button>
+        <span class="font-display font-semibold text-sm tracking-widest uppercase text-outline-variant">Edit</span>
+    </div>
+</header>
+
+<main class="pt-32 px-6 max-w-lg mx-auto flex flex-col gap-10"> <section>
+    <input type="text" id="taskName" value="Final Production QA"
+           class="w-full bg-transparent font-display text-4xl font-bold text-on-surface placeholder-outline-variant focus:outline-none"
+           placeholder="Task Name...">
+</section>
+
+    <section class="bg-container-low rounded-[2rem] p-8 flex flex-col gap-8">
+
+        <div class="flex flex-col gap-3">
+            <label class="font-display font-semibold text-xs tracking-widest uppercase text-tertiary">Description</label>
+            <textarea id="taskDesc" rows="3"
+                      class="w-full bg-container-high rounded-lg p-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                      placeholder="Add notes about this task..."></textarea>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <label class="font-display font-semibold text-xs tracking-widest uppercase text-tertiary">Spoon Cost</label>
+            <div class="flex items-center gap-4">
+                <input type="number" id="spoonCount" value="15"
+                       class="w-24 bg-container-high rounded-lg p-4 font-display text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <span class="text-sm font-medium text-outline-variant">Energy units required</span>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="flex flex-col gap-4">
+        <label class="bg-container-lowest shadow-ambient rounded-[1.5rem] p-6 flex items-center justify-between cursor-pointer active:scale-95 transition-transform">
+            <div>
+                <h3 class="font-display font-semibold text-lg">High Priority</h3>
+                <p class="text-xs text-outline-variant mt-1">Move to the top of the daily list</p>
+            </div>
+            <input type="checkbox" id="isPriority" class="w-6 h-6 accent-primary bg-container-high rounded-md border-none cursor-pointer">
+        </label>
+
+        <label class="bg-container-lowest shadow-ambient rounded-[1.5rem] p-6 flex items-center justify-between cursor-pointer active:scale-95 transition-transform">
+            <div>
+                <h3 class="font-display font-semibold text-lg">Recurring Task</h3>
+                <p class="text-xs text-outline-variant mt-1">Refills automatically each week</p>
+            </div>
+            <input type="checkbox" id="isRecurring" class="w-6 h-6 accent-primary bg-container-high rounded-md border-none cursor-pointer">
+        </label>
+    </section>
+
+</main>
+
+<div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-surface via-surface/90 to-transparent">
+    <button onclick="saveTask()" class="w-full bg-gradient-to-br from-primary to-primary-dim text-white font-display font-bold text-lg py-5 rounded-[1.5rem] shadow-ambient active:translate-y-1 transition-all">
+        Save Changes
+    </button>
+</div>
+
+<script>
+    // 1. Get the Task ID from the URL (e.g., edit_task.html?id=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentTaskId = parseInt(urlParams.get('id'));
+
+    // 2. ASKING FOR DATA: Run this immediately when the page loads
+    window.onload = function() {
+        if (window.AndroidBridge && currentTaskId) {
+            // Ask Kotlin to find this specific task in the Room Database
+            window.AndroidBridge.requestTaskData(currentTaskId);
+        }
+    };
+
+    // 3. RECEIVING DATA: Kotlin will force this function to run and hand it the JSON
+    function receiveTaskData(taskData) {
+        console.log("Received data from Kotlin!", taskData);
+
+        // Inject the real database values directly into the HTML inputs!
+        document.getElementById('taskName').value = taskData.name;
+        document.getElementById('taskDesc').value = taskData.description;
+        document.getElementById('spoonCount').value = taskData.spoons;
+        document.getElementById('isPriority').checked = taskData.priority;
+        document.getElementById('isRecurring').checked = taskData.recurring;
+    }
+
+    // 4. SENDING DATA: The function triggered by the "Save Changes" button
+    function saveTask() {
+        const newName = document.getElementById('taskName').value;
+        const newDesc = document.getElementById('taskDesc').value;
+        const newSpoons = parseInt(document.getElementById('spoonCount').value);
+        const isPriority = document.getElementById('isPriority').checked;
+        const isRecurring = document.getElementById('isRecurring').checked;
+
+        if (window.AndroidBridge) {
+            window.AndroidBridge.updateTaskDetails(
+                currentTaskId, newName, newDesc, newSpoons, isPriority, isRecurring
+            );
+        }
+    }
+
+    function goBack() {
+        window.history.back();
+    }
+</script>
+</body>
+</html>

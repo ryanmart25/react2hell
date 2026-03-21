@@ -124,8 +124,7 @@
                             200 spoons
                         </div>
                     </div>
-                    <h4 class="font-headline text-2xl font-bold mb-2">Final Production QA</h4>
-                    <p class="text-white/90 text-sm leading-relaxed max-w-[80%]">One last check to make sure everything is perfect before the big release!</p>
+                    <div id="taskContainer" class="flex flex-col gap-6 w-full max-w-lg mx-auto px-6"></div>
                 </div>
                 <div class="absolute -right-6 -bottom-6 opacity-20 floating">
                     <span class="material-symbols-outlined text-[120px]" data-icon="favorite">favorite</span>
@@ -209,4 +208,68 @@
     <a class="flex flex-col items-center justify-center bg-primary text-white rounded-full px-5 py-1 active:scale-90 duration-300 ease-out transition-all" href="#"><span class="material-symbols-outlined" data-icon="play_circle" style="font-variation-settings: 'FILL' 1;">play_circle</span>
         <span class="font-headline text-[10px] font-bold tracking-wide">Start Day</span></a>
 </nav>
+<script>
+    // 1. Ask for the data the second the page loads
+        window.onload = function() {
+            if (window.AndroidBridge) {
+                window.AndroidBridge.requestAllTasks();
+            } else {
+                console.log("Not running in Android - cannot fetch tasks.");
+            }
+        };
+
+        // 2. Kotlin shouts the data back to this function
+        function receiveAllTasks(tasksArray) {
+            const container = document.getElementById('taskContainer');
+
+            // Clear out anything that was in the bucket just in case
+            container.innerHTML = '';
+
+            // 3. Loop through every task in the database
+            tasksArray.forEach(task => {
+
+                // Determine styling based on priority (using your design system tokens)
+                const priorityBadge = task.priority
+                    ? `<span class="bg-primary/10 text-primary font-display font-semibold text-xs tracking-widest uppercase px-3 py-1 rounded-full">High Priority</span>`
+                    : ``;
+
+                // 4. Build the HTML card as a string
+                // Notice we inject ${task.id}, ${task.name}, etc. directly into the layout!
+                const cardHTML = `
+                    <div onclick="openTaskEditor(${task.id})" class="bg-container-lowest shadow-ambient rounded-[2rem] p-8 flex flex-col gap-4 border-2 border-transparent active:scale-[0.98] transition-transform cursor-pointer">
+
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-display text-2xl font-bold text-on-surface leading-tight">${task.name}</h4>
+                            ${priorityBadge}
+                        </div>
+
+                        <p class="text-on-surface/70 text-sm leading-relaxed font-body">
+                            ${task.description}
+                        </p>
+
+                        <div class="mt-2 pt-4 border-t border-container-low flex justify-between items-center">
+                            <span class="text-tertiary font-display font-semibold text-xs tracking-widest uppercase">Energy Required</span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-display text-xl font-bold text-primary">${task.spoons}</span>
+                                <span class="text-outline-variant text-sm">spoons</span>
+                            </div>
+                        </div>
+
+                    </div>
+                `;
+
+                // 5. Drop the finished card into the bucket on the page
+                container.innerHTML += cardHTML;
+            });
+        }
+    // 1. Triggered when the card is clicked
+    function openTaskEditor(taskId) {
+        console.log("Card clicked! Task ID: " + taskId);
+
+        // 2. Send the ID across the bridge to Kotlin to change the page
+        if (window.AndroidBridge) {
+            AndroidBridge.navigateToEditScreen(taskId);
+        }
+    }
+</script>
 </body></html>
