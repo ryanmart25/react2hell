@@ -1,6 +1,8 @@
 package com.example.spoonomics
 
 import android.os.Bundle
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.spoonomics.ui.theme.SpoonomicsTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,14 +23,29 @@ class MainActivity : ComponentActivity() {
         setContent {
             SpoonomicsTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    CuteCanvasWebScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
+}
+@Composable
+fun CuteCanvasWebScreen(modifier: Modifier = Modifier){
+    AndroidView(
+        modifier = modifier.fillMaxSize(),
+        factory = { context ->
+            WebView(context).apply {
+                // Tailwind needs JavaScript to compile in the browser
+                settings.javaScriptEnabled = true
+
+                // This ensures links open inside your app, not in Chrome
+                webViewClient = WebViewClient()
+
+                // Point it to your shiny new assets folder!
+                loadUrl("file:///android_asset/userHome.html")
+            }
+        }
+    )
 }
 
 @Composable
