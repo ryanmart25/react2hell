@@ -1,4 +1,4 @@
-package com.example.spoononomics
+package com.example.spoonomics
 
 import android.webkit.WebView
 import android.webkit.JavascriptInterface
