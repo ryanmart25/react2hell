@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavBackStackEntry
+import androidx.room.util.copy
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
