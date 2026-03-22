@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.spoonomics.ui.theme.SpoonomicsTheme
 
@@ -54,12 +55,15 @@ fun AppRoot(){
                         }
                     )
                 }
-                composable(USerDestination.TaskCreation.route){
+                composable(UserDestination.TaskCreation.route){
                     val TaskCreationViewModel: TaskCreationViewModel = viewModel()
                     TaskCreationRoute(
                         viewModel= TaskCreationViewModel,
-                        onNavigateToUserHome = {
-                            NavController.navigate(UserDestination.Home.route)
+                        onTaskSave = {
+                            NavController.popBackStack()
+                        },
+                        onBack = {
+                            NavController.popBackStack()
                         }
                     )
                 }
