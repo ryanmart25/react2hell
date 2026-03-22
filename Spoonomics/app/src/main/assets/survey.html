@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#5f446a",
+              "on-secondary-container": "#4e5065",
+              "surface-container-low": "#f5f2fb",
+              "tertiary-fixed-dim": "#e6c3f0",
+              "secondary-container": "#e0e1f9",
+              "error-container": "#f97386",
+              "error": "#a8364b",
+              "on-tertiary": "#fff7fc",
+              "tertiary-container": "#f5d1ff",
+              "surface-container-high": "#e9e7f1",
+              "surface": "#fbf8fe",
+              "primary-fixed-dim": "#b2b8ee",
+              "on-primary": "#faf8ff",
+              "secondary-fixed": "#e0e1f9",
+              "on-secondary-fixed": "#3c3e51",
+              "inverse-on-surface": "#9e9ca2",
+              "on-background": "#31323b",
+              "secondary-fixed-dim": "#d2d3eb",
+              "surface-bright": "#fbf8fe",
+              "on-primary-container": "#383f6d",
+              "on-error": "#fff7f7",
+              "on-surface-variant": "#5e5e68",
+              "primary-dim": "#49507f",
+              "surface-container-highest": "#e3e1ed",
+              "outline-variant": "#b2b1bc",
+              "tertiary-fixed": "#f5d1ff",
+              "error-dim": "#6b0221",
+              "surface-dim": "#dad9e4",
+              "background": "#fbf8fe",
+              "primary-fixed": "#bfc6fd",
+              "on-tertiary-fixed": "#4c3256",
+              "tertiary-dim": "#64496f",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed-variant": "#585a6f",
+              "surface-container": "#efedf6",
+              "on-tertiary-fixed-variant": "#694e74",
+              "tertiary": "#71557c",
+              "on-secondary": "#faf8ff",
+              "inverse-primary": "#bfc6fd",
+              "primary": "#555c8c",
+              "secondary-dim": "#505266",
+              "surface-variant": "#e3e1ed",
+              "surface-tint": "#555c8c",
+              "secondary": "#5c5e72",
+              "inverse-surface": "#0e0e12",
+              "outline": "#7a7a84",
+              "on-surface": "#31323b",
+              "on-primary-fixed": "#242a57",
+              "on-error-container": "#6e0523",
+              "primary-container": "#bfc6fd",
+              "on-primary-fixed-variant": "#414876"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-gradient {
+            background: linear-gradient(135deg, #555c8c 0%, #49507f 100%);
+        }
+        .soft-glow {
+            box-shadow: 0 8px 32px -4px rgba(85, 92, 140, 0.1);
+        }
+    </style>
+<style>
+        body {
+          min-height: 100dvh;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<header class="fixed top-0 w-full z-50 bg-[#fbf8fe]/70 backdrop-blur-xl shadow-sm">
+<div class="flex items-center justify-between px-6 h-16 w-full">
+<div class="w-10"></div>
+<h1 class="font-headline font-bold text-lg tracking-tight text-[#555c8c]">Daily Survey</h1>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f5f2fb] transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#555c8c]" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-16 px-6 max-w-2xl mx-auto space-y-10 flex flex-col items-center">
+<!-- Hero Section -->
+<header class="space-y-4 w-full flex flex-col items-start">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                Daily Reflection
+            </div>
+<h2 class="font-headline text-4xl font-extrabold text-on-background leading-tight text-left">
+                How is your journey <br/>unfolding today?
+            </h2>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-md text-left">
+                Take a moment to breathe and share your thoughts. Your reflections help shape a more mindful tomorrow.
+            </p>
+</header>
+<!-- Survey Content Section -->
+<form class="space-y-8 w-full" onsubmit="return false;">
+<!-- Section 1: Mood/Day -->
+<section class="space-y-3 flex flex-col items-start">
+<div class="space-y-2 w-full">
+<label class="block font-headline text-xl font-bold text-on-background text-left">
+                        Describe the highlights of your day so far.
+                    </label>
+<textarea class="w-full border-none bg-surface-container-high rounded-none p-5 text-on-surface text-left placeholder:text-outline focus:ring-2 focus:ring-primary transition-all duration-300 resize-none" placeholder="What made you smile today?" rows="3"></textarea>
+</div>
+</section>
+<!-- Section 2: Personal Goals -->
+<section class="space-y-3 flex flex-col items-start">
+<div class="space-y-2 w-full">
+<label class="block font-headline text-xl font-bold text-on-background text-left">
+                        What is one thing you're striving for today?
+                    </label>
+<textarea class="w-full border-none bg-surface-container-high rounded-none p-5 text-on-surface text-left placeholder:text-outline focus:ring-2 focus:ring-primary transition-all duration-300 resize-none" placeholder="A goal, a task, or a new habit..." rows="3"></textarea>
+</div>
+</section>
+<!-- Section 3: Reflection/Mood -->
+<section class="space-y-3 flex flex-col items-start">
+<div class="space-y-2 w-full">
+<label class="block font-headline text-xl font-bold text-on-background text-left">
+                        How are you feeling mentally and physically?
+                    </label>
+<textarea class="w-full border-none bg-surface-container-high rounded-none p-5 text-on-surface text-left placeholder:text-outline focus:ring-2 focus:ring-primary transition-all duration-300 resize-none" placeholder="Honesty is your superpower..." rows="3"></textarea>
+</div>
+</section>
+<!-- Submit Button Section -->
+<div class="pt-4 w-full text-center">
+<button onclick="submitSurvey()" class="editorial-gradient w-full py-5 rounded-xl text-on-primary font-headline font-bold text-lg flex items-center justify-center gap-3 soft-glow active:scale-[0.98] transition-all duration-200" type="button">
+                    Submit Survey
+                    <span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+<p class="text-on-surface-variant text-sm mt-6 font-medium">
+                    Your answers are saved securely in your private journal.
+                </p>
+</div>
+<script>
+function submitSurvey() {
+    if (window.Android) {
+        window.Android.onSubmit();
+    }
+}
+</script>
+</form>
+</main>
+<!-- Decoration element (floating circle) -->
+<div class="fixed -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
+<div class="fixed top-1/2 -left-32 w-80 h-80 bg-tertiary/5 rounded-full blur-3xl -z-10"></div>
+</body></html>

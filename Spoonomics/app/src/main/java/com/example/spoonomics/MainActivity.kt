@@ -22,6 +22,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.spoonomics.ui.theme.SpoonomicsTheme
 
+// -------------------------------------------------------
+// SURVEY GATE: set to true to show survey on launch,
+// false to go straight to home
+// -------------------------------------------------------
+const val SHOW_SURVEY_ON_LAUNCH = true
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,12 +43,27 @@ fun AppRoot() {
     val navController = rememberNavController()
     val application = LocalContext.current.applicationContext as Application
 
+    val startDestination = if (SHOW_SURVEY_ON_LAUNCH) {
+        UserDestination.Survey.route
+    } else {
+        UserDestination.Home.route
+    }
+
     SpoonomicsTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             NavHost(
                 navController = navController,
-                startDestination = UserDestination.Home.route
+                startDestination = startDestination
             ) {
+                composable(UserDestination.Survey.route) {
+                    SurveyWebScreen(
+                        onSurveySubmit = {
+                            navController.navigate(UserDestination.Home.route) {
+                                popUpTo(UserDestination.Survey.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
                 composable(UserDestination.Home.route) {
                     val homeViewModel: HomeViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
@@ -77,6 +98,28 @@ fun AppRoot() {
             }
         }
     }
+}
+
+@Composable
+fun SurveyWebScreen(onSurveySubmit: () -> Unit) {
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                addJavascriptInterface(object : Any() {
+                    @android.webkit.JavascriptInterface
+                    fun onSubmit() {
+                        android.os.Handler(android.os.Looper.getMainLooper()).post {
+                            onSurveySubmit()
+                        }
+                    }
+                }, "Android")
+                webViewClient = WebViewClient()
+                loadUrl("file:///android_asset/survey.html")
+            }
+        }
+    )
 }
 
 @Composable
