@@ -13,5 +13,8 @@ fun UserHomeRoute(
         viewModel.loadTasks()
     }
     val uiState = viewModel.uiState
-    UserHomeScreen()
+    UserHomeScreen(
+        uiState = uiState,
+        onNavigateToTaskCreation = onNavigateToTaskCreation
+    )
 }

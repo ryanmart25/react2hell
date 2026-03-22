@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.spoonomics.R;
 
 // --- Theme Colors ---
 val SoftPink = Color(0xFFFF9AAE)
@@ -35,7 +34,10 @@ val OnSurface = Color(0xFF4A4A4A)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserHomeScreen() {
+fun UserHomeScreen(
+    uiState: ModelsAndState.HomeUiState,
+    onNavigateToTaskCreation: () -> Unit
+) {
     var isChatExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -64,45 +66,55 @@ fun UserHomeScreen() {
                 )
             )
         },
-        bottomBar = { BottomNavBar() }
+        bottomBar = { BottomNavBar(onTasksClick = {}, onStartDayClick = onNavigateToTaskCreation) }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            // Main Content
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                item { HeroStats() }
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                // Main Content
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item { HeroStats(uiState) }
 
-                item { SectionHeader("High Priority") }
-                item {
-                    TaskCard(
-                        title = "Final Production QA",
-                        description = "One last check to make sure everything is perfect before the big release!",
-                        spoons = 200,
-                        tag = "Urgent",
-                        containerColor = UrgentRed,
-                        contentColor = Color.White,
-                        isInitialExpanded = true
-                    )
+                    val highPriorityTasks = uiState.tasks.filter { it.priority }
+                    val activeStreamTasks = uiState.tasks.filter { !it.priority }
+
+                    if (highPriorityTasks.isNotEmpty()) {
+                        item { SectionHeader("High Priority") }
+                        items(highPriorityTasks) { task ->
+                            TaskCard(
+                                title = task.name,
+                                description = task.description,
+                                spoons = task.spoonAllocation,
+                                tag = "Urgent",
+                                containerColor = UrgentRed,
+                                contentColor = Color.White
+                            )
+                        }
+                    }
+
+                    if (activeStreamTasks.isNotEmpty()) {
+                        item { SectionHeader("Active Stream") }
+                        items(activeStreamTasks) { task ->
+                            TaskCard(
+                                title = task.name,
+                                description = task.description,
+                                spoons = task.spoonAllocation,
+                                tag = "Daily",
+                                containerColor = Mint,
+                                contentColor = OnSurface
+                            )
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(100.dp)) }
                 }
-
-                item { SectionHeader("Active Stream") }
-                items(activeTasks) { task ->
-                    TaskCard(
-                        title = task.name,
-                        description = task.description,
-                        spoons = task.spoonAllocation,
-                        tag = task.description,
-                        containerColor = Color.Red, // TODO figure out what color this should be.
-                        contentColor = OnSurface
-                    )
-                }
-
-                item { Spacer(modifier = Modifier.height(100.dp)) }
             }
 
             // Floating Mascot and Input
@@ -124,12 +136,12 @@ fun UserHomeScreen() {
                             ChatInputBar()
                         }
 
-                        MascotButton(onClick = { isChatExpanded = !isChatExpanded })
+                        MascotButton(onClick = onNavigateToTaskCreation)
                     }
 
                     if (!isChatExpanded) {
                         Text(
-                            "TAP TO CHAT",
+                            "ADD TASK",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = OnSurface.copy(alpha = 0.4f),
@@ -143,15 +155,19 @@ fun UserHomeScreen() {
 }
 
 @Composable
-fun HeroStats() {
+fun HeroStats(uiState: ModelsAndState.HomeUiState) {
+    val pendingCount = uiState.tasks.count { !it.completeStatus }
+    val doneCount = uiState.tasks.count { it.completeStatus }
+    val totalCount = uiState.tasks.size
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        StatBox("12", "Pending", SoftYellow, Modifier.weight(1f))
-        StatBox("12/24", "Done!", Mint, Modifier.weight(1f))
+        StatBox(pendingCount.toString(), "Pending", SoftYellow, Modifier.weight(1f))
+        StatBox("$doneCount/$totalCount", "Done!", Mint, Modifier.weight(1f))
         StatBox("4", "Goals", Lavender, Modifier.weight(1f))
     }
 }
@@ -317,7 +333,10 @@ fun MascotButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun BottomNavBar() {
+fun BottomNavBar(
+    onTasksClick: () -> Unit,
+    onStartDayClick: () -> Unit
+) {
     Surface(
         color = Color.White.copy(alpha = 0.95f),
         shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
@@ -330,16 +349,16 @@ fun BottomNavBar() {
                 .navigationBarsPadding(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            NavButton("Tasks", Icons.Default.CheckCircle)
-            NavButton("Start Day", icon = Icons.Default.PlayArrow, active = false)
+            NavButton("Tasks", Icons.Default.CheckCircle, onClick = onTasksClick)
+            NavButton("Start Day", icon = Icons.Default.PlayArrow, active = false, onClick = onStartDayClick)
         }
     }
 }
 
 @Composable
-fun NavButton(label: String, icon: ImageVector, active: Boolean = true) {
+fun NavButton(label: String, icon: ImageVector, active: Boolean = true, onClick: () -> Unit) {
     Button(
-        onClick = {},
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = if (active) SoftPink else Color.Transparent),
         shape = CircleShape,
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
@@ -362,22 +381,13 @@ fun SectionHeader(title: String) {
     )
 }
 
-val activeTasks = listOf(
-    Task(
-        0, 200, "Do Dishes", "Do your dishes", false, false, 3, false
-    ),
-    Task(
-        id = 1,
-        userId = 200,
-        name = "Do Your Taxes",
-        description = "Ask your boss for your W2"
-    )
-)
-
 @Preview
 @Composable
 fun UserHomeScreenPreview() {
     MaterialTheme {
-        UserHomeScreen()
+        UserHomeScreen(
+            uiState = ModelsAndState.HomeUiState(id = 1, isLoading = false),
+            onNavigateToTaskCreation = {}
+        )
     }
 }
