@@ -10,13 +10,19 @@ class ModelsAndState {
         val spoons: Int = 4,
         val isRecordingName: Boolean = false,
         val isRecordingDescription: Boolean = false,
-        val isSaving: Boolean = false
+        val isSaving: Boolean = false,
+        val isLoading: Boolean = false
     )
 
     enum class TaskImportance {
         PRIORITY, // Maps to "active-urgent" (#FF5252)
         DAILY     // Maps to "active-secondary" (#B5EAD7)
     }
-    data class HomeUiState(val id: Int)
+    data class HomeUiState(
+        val id: Int,
+        val isLoading: Boolean = true,
+        val tasks: List<Task> = emptyList(),
+        val errorMessage: String? = null
+    )
 
 }

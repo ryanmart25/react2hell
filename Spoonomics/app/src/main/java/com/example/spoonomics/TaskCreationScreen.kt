@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -46,7 +45,7 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateTaskScreen(
+fun TaskCreationScreen(
     uiState: ModelsAndState.TaskCreationUiState,
     onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
@@ -202,9 +201,9 @@ fun SpoonCounter(count: Int, onCountChange: (Int) -> Unit) {
 }
 @Preview(showBackground = true, backgroundColor = 0xFFFFFBFA)
 @Composable
-fun PreviewCreateTaskScreen() {
+fun PreviewTaskCreationScreen() {
     MaterialTheme {
-        CreateTaskScreen(
+        TaskCreationScreen(
             uiState = ModelsAndState.TaskCreationUiState(
                 taskName = "Deep Work Session",
                 description = "Finalize the wireframes for the new dashboard...",
