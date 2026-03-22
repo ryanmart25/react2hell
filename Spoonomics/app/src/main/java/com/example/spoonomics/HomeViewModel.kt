@@ -7,9 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -28,8 +25,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 combine(
-                    taskDao.getHighPriorityTask(),
-                    taskDao.getActiveTasks()
+                    taskDao.getHighPriorityTask(1),
+                    taskDao.getActiveTasks(1)
                 ) { highPriority, actives ->
                     val completed = actives.count { it.completeStatus }
                     ModelsAndState.HomeUiState(

@@ -6,6 +6,9 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Database(entities = [User::class, Task::class], version = 2, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +32,15 @@ abstract class AppDatabase : RoomDatabase() {
                     "app_database"
                 )
                     .addMigrations(MIGRATION_1_2)
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            // Insert default user on first database creation
+                            db.execSQL(
+                                "INSERT INTO users (id, dailySpoons, spoonsCompleted, patientId) VALUES (1, 10, 0, 0)"
+                            )
+                        }
+                    })
                     .build().also { INSTANCE = it }
             }
         }
