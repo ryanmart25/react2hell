@@ -13,7 +13,5 @@ fun UserHomeRoute(
         viewModel.loadTasks()
     }
     val uiState = viewModel.uiState
-    UserHomeScreen(
-
-    )
+    UserHomeScreen()
 }
