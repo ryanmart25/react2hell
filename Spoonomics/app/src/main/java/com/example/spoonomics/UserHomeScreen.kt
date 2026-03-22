@@ -1,4 +1,5 @@
 package com.example.spoonomics
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -18,10 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.spoonomics.R;
 
 // --- Theme Colors ---
 val SoftPink = Color(0xFFFF9AAE)
@@ -35,19 +34,19 @@ val OnSurface = Color(0xFF4A4A4A)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserHomeScreen() {
-    var isChatExpanded by remember { mutableStateOf(false) }
-
+fun UserHomeScreen(
+    uiState: ModelsAndState.HomeUiState,
+    onMascotClick: () -> Unit,
+    onNavigateToTaskCreation: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
+        modifier = modifier,
         containerColor = SurfaceColor,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        "My Tasks",
-                        fontWeight = FontWeight.Bold,
-                        color = OnSurface
-                    )
+                    Text("My Tasks", fontWeight = FontWeight.Bold, color = OnSurface)
                 },
                 actions = {
                     Box(
@@ -64,45 +63,68 @@ fun UserHomeScreen() {
                 )
             )
         },
-        bottomBar = { BottomNavBar() }
+        bottomBar = { BottomNavBar(onNavigateToTaskCreation = onNavigateToTaskCreation) }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
-            // Main Content
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                item { HeroStats() }
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item {
+                        HeroStats(
+                            pending = uiState.pendingCount,
+                            done = uiState.doneCount,
+                            goals = uiState.goalsCount
+                        )
+                    }
 
-                item { SectionHeader("High Priority") }
-                item {
-                    TaskCard(
-                        title = "Final Production QA",
-                        description = "One last check to make sure everything is perfect before the big release!",
-                        spoons = 200,
-                        tag = "Urgent",
-                        containerColor = UrgentRed,
-                        contentColor = Color.White,
-                        isInitialExpanded = true
-                    )
+                    uiState.highPriorityTask?.let { task ->
+                        item { SectionHeader("High Priority") }
+                        item {
+                            TaskCard(
+                                title = task.name,
+                                description = task.description,
+                                spoons = task.spoonAllocation,
+                                tag = "Urgent",
+                                containerColor = UrgentRed,
+                                contentColor = Color.White,
+                                isInitialExpanded = true
+                            )
+                        }
+                    }
+
+                    if (uiState.activeTasks.isNotEmpty()) {
+                        item { SectionHeader("Active Stream") }
+                        items(uiState.activeTasks) { task ->
+                            TaskCard(
+                                title = task.name,
+                                description = task.description,
+                                spoons = task.spoonAllocation,
+                                tag = if (task.recurring) "Recurring" else "Task",
+                                containerColor = Mint,
+                                contentColor = OnSurface
+                            )
+                        }
+                    }
+
+                    uiState.errorMessage?.let { error ->
+                        item {
+                            Text(
+                                error,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(100.dp)) }
                 }
-
-                item { SectionHeader("Active Stream") }
-                items(activeTasks) { task ->
-                    TaskCard(
-                        title = task.name,
-                        description = task.description,
-                        spoons = task.spoonAllocation,
-                        tag = task.description,
-                        containerColor = Color.Red, // TODO figure out what color this should be.
-                        contentColor = OnSurface
-                    )
-                }
-
-                item { Spacer(modifier = Modifier.height(100.dp)) }
             }
 
             // Floating Mascot and Input
@@ -117,17 +139,16 @@ fun UserHomeScreen() {
                         horizontalArrangement = Arrangement.End
                     ) {
                         AnimatedVisibility(
-                            visible = isChatExpanded,
+                            visible = uiState.isChatExpanded,
                             enter = expandHorizontally() + fadeIn(),
                             exit = shrinkHorizontally() + fadeOut()
                         ) {
                             ChatInputBar()
                         }
-
-                        MascotButton(onClick = { isChatExpanded = !isChatExpanded })
+                        MascotButton(onClick = onMascotClick)
                     }
 
-                    if (!isChatExpanded) {
+                    if (!uiState.isChatExpanded) {
                         Text(
                             "TAP TO CHAT",
                             fontSize = 9.sp,
@@ -143,16 +164,16 @@ fun UserHomeScreen() {
 }
 
 @Composable
-fun HeroStats() {
+fun HeroStats(pending: String, done: String, goals: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        StatBox("12", "Pending", SoftYellow, Modifier.weight(1f))
-        StatBox("12/24", "Done!", Mint, Modifier.weight(1f))
-        StatBox("4", "Goals", Lavender, Modifier.weight(1f))
+        StatBox(pending, "Pending", SoftYellow, Modifier.weight(1f))
+        StatBox(done, "Done!", Mint, Modifier.weight(1f))
+        StatBox(goals, "Goals", Lavender, Modifier.weight(1f))
     }
 }
 
@@ -174,6 +195,7 @@ fun StatBox(value: String, label: String, color: Color, modifier: Modifier) {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskCard(
@@ -200,19 +222,17 @@ fun TaskCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Surface(
-                        color = Color.White.copy(alpha = 0.3f),
-                        shape = CircleShape
-                    ) {
-                        Text(
-                            text = tag,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = contentColor
-                        )
-                    }
+                Surface(
+                    color = Color.White.copy(alpha = 0.3f),
+                    shape = CircleShape
+                ) {
+                    Text(
+                        text = tag,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor
+                    )
                 }
                 Surface(
                     color = Color.Black.copy(alpha = 0.1f),
@@ -222,9 +242,19 @@ fun TaskCard(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(painter = painterResource(R.drawable.microphone), null, modifier = Modifier.size(14.dp), tint = contentColor)
+                        Icon(
+                            painter = painterResource(R.drawable.microphone),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = contentColor
+                        )
                         Spacer(Modifier.width(4.dp))
-                        Text("$spoons spoons", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = contentColor)
+                        Text(
+                            "$spoons spoons",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = contentColor
+                        )
                     }
                 }
             }
@@ -240,14 +270,24 @@ fun TaskCard(
                         color = contentColor.copy(alpha = 0.8f),
                         modifier = Modifier.padding(top = 8.dp)
                     )
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
                         Button(
                             onClick = {},
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White.copy(alpha = 0.2f)
+                            ),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)),
                             modifier = Modifier.padding(top = 16.dp)
                         ) {
-                            Text("EDIT THIS TASK", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = contentColor)
+                            Text(
+                                "EDIT THIS TASK",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = contentColor
+                            )
                         }
                     }
                 }
@@ -269,10 +309,12 @@ fun ChatInputBar() {
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(painter = painterResource(R.drawable.microphone), null, tint = SoftPink)
+            Icon(painter = painterResource(R.drawable.microphone), contentDescription = null, tint = SoftPink)
             Spacer(Modifier.width(12.dp))
             Text(
                 "Try saying \"Add a meeting\"",
@@ -305,7 +347,6 @@ fun MascotButton(onClick: () -> Unit) {
         border = BorderStroke(4.dp, Color.White),
         shadowElevation = 8.dp
     ) {
-        // Placeholder for Mascot Image
         Box(modifier = Modifier.background(SoftPink)) {
             Image(
                 painter = painterResource(R.drawable.dog_icon),
@@ -317,7 +358,7 @@ fun MascotButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun BottomNavBar() {
+fun BottomNavBar(onNavigateToTaskCreation: () -> Unit) {
     Surface(
         color = Color.White.copy(alpha = 0.95f),
         shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
@@ -331,23 +372,45 @@ fun BottomNavBar() {
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             NavButton("Tasks", Icons.Default.CheckCircle)
-            NavButton("Start Day", icon = Icons.Default.PlayArrow, active = false)
+            NavButton(
+                "Add Task",
+                icon = Icons.Default.Add,
+                active = false,
+                onClick = onNavigateToTaskCreation
+            )
         }
     }
 }
 
 @Composable
-fun NavButton(label: String, icon: ImageVector, active: Boolean = true) {
+fun NavButton(
+    label: String,
+    icon: ImageVector,
+    active: Boolean = true,
+    onClick: () -> Unit = {}
+) {
     Button(
-        onClick = {},
-        colors = ButtonDefaults.buttonColors(containerColor = if (active) SoftPink else Color.Transparent),
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (active) SoftPink else Color.Transparent
+        ),
         shape = CircleShape,
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, modifier = Modifier.size(20.dp), tint = if (active) Color.White else OnSurface)
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = if (active) Color.White else OnSurface
+            )
             Spacer(Modifier.width(8.dp))
-            Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (active) Color.White else OnSurface)
+            Text(
+                label,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (active) Color.White else OnSurface
+            )
         }
     }
 }
@@ -360,24 +423,4 @@ fun SectionHeader(title: String) {
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(vertical = 8.dp)
     )
-}
-
-val activeTasks = listOf(
-    Task(
-        0, 200, "Do Dishes", "Do your dishes", false, false, 3, false
-    ),
-    Task(
-        id = 1,
-        userId = 200,
-        name = "Do Your Taxes",
-        description = "Ask your boss for your W2"
-    )
-)
-
-@Preview
-@Composable
-fun UserHomeScreenPreview() {
-    MaterialTheme {
-        UserHomeScreen()
-    }
 }

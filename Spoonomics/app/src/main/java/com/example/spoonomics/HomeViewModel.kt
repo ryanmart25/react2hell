@@ -1,38 +1,59 @@
 package com.example.spoonomics
 
-import androidx.compose.animation.AnimatedContentScope
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavBackStackEntry
-import androidx.room.util.copy
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class HomeViewModel(
-// FIRST: Define something that allows you to call the functions below
-): ViewModel() {
-    // ben or emmanuel please figure out how to use room to query the database and then
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val db = AppDatabase.getInstance(application)
+    private val taskDao = db.taskDao()
+
     var uiState by mutableStateOf(ModelsAndState.HomeUiState(isLoading = true))
         private set
-    private var searchJob: Job? = null
-    init{
+
+    init {
         loadTasks()
     }
-    fun loadTasks(){
-        viewModelScope.launch{
-            try{
-                uiState = uiState.copy(isLoading = true, errorMessage = null)
-                val result = repository.getTasks()
-                uiState = uiState.copy(tasks = result, isLoading = false)
-            }catch (e: Exception){
+
+    fun loadTasks() {
+        viewModelScope.launch {
+            try {
+                combine(
+                    taskDao.getHighPriorityTask(),
+                    taskDao.getActiveTasks()
+                ) { highPriority, actives ->
+                    val completed = actives.count { it.completeStatus }
+                    ModelsAndState.HomeUiState(
+                        highPriorityTask = highPriority,
+                        activeTasks = actives.filter { !it.completeStatus },
+                        pendingCount = actives.count { !it.completeStatus }.toString(),
+                        doneCount = "$completed/${actives.size}",
+                        goalsCount = actives.size.toString(),
+                        isLoading = false,
+                        errorMessage = null
+                    )
+                }.collect { newState ->
+                    uiState = newState
+                }
+            } catch (e: Exception) {
                 uiState = uiState.copy(
                     errorMessage = e.message ?: "Unknown error",
-                    isLoading  =false
+                    isLoading = false
                 )
             }
         }
+    }
+
+    fun toggleChat() {
+        uiState = uiState.copy(isChatExpanded = !uiState.isChatExpanded)
     }
 }
